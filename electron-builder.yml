@@ -1,7 +1,9 @@
 appId: com.kangfenmao.CherryStudio
 productName: Cherry Studio
+electronVersion: 31.7.6
 directories:
   buildResources: build
+  output: dist
 files:
   - '!{.vscode,.yarn,.github}'
   - '!electron.vite.config.{js,ts,mjs,cjs}'
@@ -76,6 +78,7 @@ publish:
   url: https://cherrystudio.ocool.online
 electronDownload:
   mirror: https://npmmirror.com/mirrors/electron/
+  customDir: "31.7.6"
 afterPack: scripts/after-pack.js
 afterSign: scripts/notarize.js
 releaseInfo:

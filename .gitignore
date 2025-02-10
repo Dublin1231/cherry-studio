@@ -44,3 +44,7 @@ stats.html
 
 # Local
 local
+
+# Electron
+electron-win32-x64.zip
+**/electron-v*
