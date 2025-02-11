@@ -1,0 +1,87 @@
+.editorContainer {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    border: 1px solid #f0f0f0;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.toolbar {
+    padding: 8px;
+    border-bottom: 1px solid #f0f0f0;
+    display: flex;
+    gap: 8px;
+    background: #fafafa;
+
+    :global {
+        .ant-btn-group {
+            margin-right: 8px;
+        }
+
+        .ant-btn {
+            padding: 4px 8px;
+
+            &:hover {
+                color: #1890ff;
+                border-color: #1890ff;
+            }
+        }
+    }
+}
+
+:global {
+    .tox-tinymce {
+        border: none !important;
+    }
+
+    .tox-editor-container {
+        background: #fff;
+    }
+
+    .tox-edit-area {
+        padding: 16px;
+    }
+
+    .tox-edit-area__iframe {
+        background: #fff;
+    }
+
+    // 记忆锚点样式
+    .memory-anchor {
+        background: rgba(24, 144, 255, 0.1);
+        border-bottom: 1px dashed #1890ff;
+        cursor: pointer;
+        transition: all 0.3s;
+
+        &:hover {
+            background: rgba(24, 144, 255, 0.2);
+        }
+    }
+
+    // 伏笔标记样式
+    .foreshadowing {
+        background: rgba(250, 173, 20, 0.1);
+        border-bottom: 1px dashed #faad14;
+        cursor: pointer;
+        transition: all 0.3s;
+
+        &:hover {
+            background: rgba(250, 173, 20, 0.2);
+        }
+    }
+}
+
+// 响应式样式
+@media (max-width: 768px) {
+    .toolbar {
+        flex-wrap: wrap;
+
+        :global {
+            .ant-btn-group {
+                margin-bottom: 8px;
+            }
+        }
+    }
+}

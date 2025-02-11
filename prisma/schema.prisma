@@ -1,0 +1,92 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./novel.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// 小说项目
+model Novel {
+  id          String   @id @default(uuid())
+  title       String
+  author      String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // 关联
+  chapters    Chapter[]
+  memories    MemoryAnchor[]
+  foreshadowings Foreshadowing[]
+  
+  // 设置
+  settings    Json?    // 存储风格、世界观等设置
+}
+
+// 章节内容
+model Chapter {
+  id          String   @id @default(uuid())
+  novelId     String
+  number      Int      // 章节号
+  title       String
+  content     String   // 章节内容
+  status      String   @default("draft") // draft, published
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // 关联
+  novel       Novel    @relation(fields: [novelId], references: [id])
+  memories    MemoryAnchor[]
+  
+  @@unique([novelId, number])
+}
+
+// 记忆锚点
+model MemoryAnchor {
+  id          String   @id @default(uuid())
+  novelId     String
+  chapterId   String
+  type        String   // character, location, item, event
+  content     String   // 锚点内容
+  embedding   Bytes?   // 向量嵌入
+  weight      Float    @default(1.0)
+  createdAt   DateTime @default(now())
+  
+  // 关联
+  novel       Novel    @relation(fields: [novelId], references: [id])
+  chapter     Chapter  @relation(fields: [chapterId], references: [id])
+  
+  // 关系
+  relations   MemoryRelation[] @relation("SourceMemory")
+  relatedTo   MemoryRelation[] @relation("TargetMemory")
+}
+
+// 记忆关系
+model MemoryRelation {
+  id          String   @id @default(uuid())
+  sourceId    String
+  targetId    String
+  type        String   // causal, temporal, spatial
+  weight      Float    @default(1.0)
+  
+  // 关联
+  source      MemoryAnchor @relation("SourceMemory", fields: [sourceId], references: [id])
+  target      MemoryAnchor @relation("TargetMemory", fields: [targetId], references: [id])
+}
+
+// 伏笔管理
+model Foreshadowing {
+  id          String   @id @default(uuid())
+  novelId     String
+  content     String   // 伏笔内容
+  plantedAt   Int      // 埋设章节号
+  expectedAt  Int      // 预期回收章节号
+  status      String   @default("planted") // planted, recalled
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // 关联
+  novel       Novel    @relation(fields: [novelId], references: [id])
+} 
