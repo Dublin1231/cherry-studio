@@ -17,12 +17,14 @@ model Novel {
   updatedAt   DateTime @updatedAt
   
   // 关联
-  chapters    Chapter[]
-  memories    MemoryAnchor[]
+  chapters       Chapter[]
+  memories       MemoryAnchor[]
   foreshadowings Foreshadowing[]
-  
-  // 设置
-  settings    Json?    // 存储风格、世界观等设置
+  timelineEvents TimelineEvent[]
+  characters     Character[]
+  behaviors      CharacterBehavior[]
+  worldRules     WorldRule[]
+  plotElements   PlotElement[]
 }
 
 // 章节内容
@@ -37,8 +39,11 @@ model Chapter {
   updatedAt   DateTime @updatedAt
   
   // 关联
-  novel       Novel    @relation(fields: [novelId], references: [id])
-  memories    MemoryAnchor[]
+  novel          Novel    @relation(fields: [novelId], references: [id])
+  memories       MemoryAnchor[]
+  timelineEvents TimelineEvent[]
+  behaviors      CharacterBehavior[]
+  plotElements   PlotElement[]
   
   @@unique([novelId, number])
 }
@@ -89,4 +94,228 @@ model Foreshadowing {
   
   // 关联
   novel       Novel    @relation(fields: [novelId], references: [id])
+}
+
+model ConsistencyCheck {
+  id        String   @id @default(uuid())
+  timestamp DateTime @default(now())
+  status    String   // 'passed' | 'failed'
+  details   String?
+  issues    ConsistencyIssue[]
+}
+
+model ConsistencyIssue {
+  id          String   @id @default(uuid())
+  timestamp   DateTime @default(now())
+  type        String
+  severity    String
+  status      String   // 'open' | 'fixed'
+  details     String?
+  check       ConsistencyCheck @relation(fields: [checkId], references: [id])
+  checkId     String
+}
+
+model TimelineEvent {
+  id          String   @id @default(cuid())
+  novelId     String
+  chapterId   String
+  description String
+  timestamp   DateTime
+  duration    Int?     // 持续时间（分钟）
+  type        String   // scene, action, dialogue, narration
+  importance  String   // high, medium, low
+  location    String?
+  
+  // 关联角色 (使用关联表)
+  characters     CharacterTimelineEvent[]
+  
+  // 关联事件
+  relatedEvents  TimelineEvent[] @relation("RelatedEvents")
+  relatedTo      TimelineEvent[] @relation("RelatedEvents")
+  
+  // 时间关系
+  sourceRelations TimelineRelation[] @relation("SourceEvent")
+  targetRelations TimelineRelation[] @relation("TargetEvent")
+
+  // 关联
+  novel   Novel    @relation(fields: [novelId], references: [id])
+  chapter Chapter  @relation(fields: [chapterId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([novelId])
+  @@index([chapterId])
+}
+
+// 角色-时间线事件关联表
+model CharacterTimelineEvent {
+  id              String   @id @default(cuid())
+  characterId     String
+  timelineEventId String
+  role            String   // participant, observer, mentioned
+  
+  character     Character     @relation(fields: [characterId], references: [id])
+  timelineEvent TimelineEvent @relation(fields: [timelineEventId], references: [id])
+
+  @@unique([characterId, timelineEventId])
+}
+
+model TimelineRelation {
+  id              String   @id @default(cuid())
+  sourceEventId   String
+  targetEventId   String
+  type            String   // before, after, during, overlaps
+  temporalDistance Int?    // 时间间隔（分钟）
+
+  sourceEvent TimelineEvent @relation("SourceEvent", fields: [sourceEventId], references: [id])
+  targetEvent TimelineEvent @relation("TargetEvent", fields: [targetEventId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([sourceEventId, targetEventId])
+  @@index([sourceEventId])
+  @@index([targetEventId])
+}
+
+model CharacterBehavior {
+  id          String   @id @default(cuid())
+  characterId String
+  novelId     String
+  chapterId   String
+  type        String   // action, dialogue, emotion, decision
+  description String
+  context     String
+  timestamp   DateTime
+  location    String?
+  metadata    Json?
+
+  // 关联
+  novel       Novel    @relation(fields: [novelId], references: [id])
+  chapter     Chapter  @relation(fields: [chapterId], references: [id])
+  character   Character @relation(fields: [characterId], references: [id])
+  
+  // 关联角色 (使用关联表)
+  relatedCharacterBehaviors CharacterBehaviorRelation[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([novelId])
+  @@index([chapterId])
+  @@index([characterId])
+}
+
+// 角色行为关联表
+model CharacterBehaviorRelation {
+  id                  String   @id @default(cuid())
+  behaviorId         String
+  relatedCharacterId String
+  role               String   // target, witness, influencer
+  
+  behavior          CharacterBehavior @relation(fields: [behaviorId], references: [id])
+  relatedCharacter  Character        @relation(fields: [relatedCharacterId], references: [id])
+
+  @@unique([behaviorId, relatedCharacterId])
+}
+
+model WorldRule {
+  id          String   @id @default(cuid())
+  novelId     String
+  category    String   // physics, magic, society, culture
+  name        String
+  description String
+  
+  // 使用JSON存储数组
+  constraints Json     // String[]
+  exceptions  Json     // String[]
+  
+  priority    String   // high, medium, low
+
+  // 关联
+  novel       Novel    @relation(fields: [novelId], references: [id])
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([novelId])
+}
+
+model PlotElement {
+  id          String   @id @default(cuid())
+  novelId     String
+  chapterId   String
+  type        String   // event, revelation, conflict, resolution
+  description String
+  importance  String   // high, medium, low
+  setup       String?
+  payoff      String?
+  status      String   // setup, development, resolved
+
+  // 关联
+  novel       Novel    @relation(fields: [novelId], references: [id])
+  chapter     Chapter  @relation(fields: [chapterId], references: [id])
+  
+  // 关联元素 (使用JSON存储数组)
+  relatedElements Json // String[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([novelId])
+  @@index([chapterId])
+}
+
+model Character {
+  id          String   @id @default(cuid())
+  novelId     String
+  name        String
+  description String
+  
+  // 使用JSON存储数组
+  personality Json     // String[]
+  abilities   Json     // String[]
+  
+  background  String?
+  status      String   // active, inactive
+  importance  String   // main, supporting, minor
+
+  // 关联
+  novel       Novel    @relation(fields: [novelId], references: [id])
+  behaviors   CharacterBehavior[]
+  
+  // 时间线事件关联
+  timelineEvents CharacterTimelineEvent[]
+  
+  // 角色行为关联
+  relatedBehaviors CharacterBehaviorRelation[]
+  
+  // 角色关系
+  relationships CharacterRelationship[] @relation("SourceCharacter")
+  relatedTo     CharacterRelationship[] @relation("TargetCharacter")
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([novelId])
+}
+
+model CharacterRelationship {
+  id          String   @id @default(cuid())
+  sourceId    String
+  targetId    String
+  type        String   // friend, enemy, family, etc
+  description String?
+  strength    Float    @default(1.0)
+  
+  source      Character @relation("SourceCharacter", fields: [sourceId], references: [id])
+  target      Character @relation("TargetCharacter", fields: [targetId], references: [id])
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([sourceId, targetId])
+  @@index([sourceId])
+  @@index([targetId])
 } 

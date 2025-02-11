@@ -194,7 +194,6 @@ export class MemoryManager {
 
 export class MemoryAgent extends BaseAgent {
   protected config: MemoryAgentConfig
-  private vectorDB: any // TODO: 实现向量数据库连接
   private cache: Map<string, MemoryAnchor>
 
   constructor(config: MemoryAgentConfig) {

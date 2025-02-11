@@ -49,7 +49,7 @@ export class AgentCoordinator extends EventEmitter {
    */
   private setupAgentListeners(type: AgentType, agent: any): void {
     agent.on('message', (message: AgentMessage) => {
-      this.handleAgentMessage(type, message)
+      this.handleAgentMessage(message)
     })
 
     agent.on('status-change', (status: AgentStatus) => {
@@ -64,7 +64,7 @@ export class AgentCoordinator extends EventEmitter {
   /**
    * 处理智能体消息
    */
-  private async handleAgentMessage(senderType: AgentType, message: AgentMessage): Promise<void> {
+  private async handleAgentMessage(message: AgentMessage): Promise<void> {
     const targetAgent = this.agents.get(message.receiver as AgentType)
     if (!targetAgent) {
       console.error(`目标智能体不存在: ${message.receiver}`)

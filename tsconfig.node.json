@@ -6,12 +6,14 @@
     "src/preload/**/*",
     "src/main/env.d.ts",
     "src/renderer/src/types/index.ts",
-    "packages/shared/**/*"
+    "packages/shared/**/*",
+    "src/main/types/**/*"
   ],
   "compilerOptions": {
     "composite": true,
     "types": [
-      "electron-vite/node"
+      "electron-vite/node",
+      "@prisma/client"
     ],
     "baseUrl": ".",
     "paths": {

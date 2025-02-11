@@ -46,8 +46,10 @@ export interface AgentResult<T = any> {
 // 创作智能体相关类型
 export interface CreationAgentConfig extends AgentConfig {
   modelConfig: {
-    endpoint: string
-    apiKey?: string
+    type: 'openai' | 'anthropic' | 'deepseek'
+    apiKey: string
+    baseUrl?: string
+    modelName: string
     temperature: number
     maxTokens: number
   }

@@ -1,11 +1,11 @@
-import { DataType } from '@zilliz/milvus2-sdk-node'
+縤mport { DataType } from '@zilliz/milvus2-sdk-node'
 
 import { milvus } from './milvus'
 import { prisma } from './prisma'
 import { shardManager } from './shard-manager'
 
 export class NovelService {
-  // 使用事务创建小说及其相关数据
+  // 娴ｈ法鏁ゆ禍瀣閸掓稑缂撶亸蹇氼嚛閸欏﹤鍙鹃惄绋垮彠閺佺増宓�
   async createNovelWithTransaction(data: {
     title: string
     author: string
@@ -17,7 +17,7 @@ export class NovelService {
     }
   }) {
     return prisma.$transaction(async (tx) => {
-      // 创建小说
+      // 閸掓稑缂撶亸蹇氼嚛
       const novel = await tx.novel.create({
         data: {
           title: data.title,
@@ -27,7 +27,7 @@ export class NovelService {
         }
       })
 
-      // 如果提供了第一章内容，创建第一�?      if (data.firstChapter) {
+      // 婵″倹鐏夐幓鎰返娴滃棛顑囨稉鈧粩鐘插敶鐎圭櫢绱濋崚娑樼紦缁楊兛绔寸粩?      if (data.firstChapter) {
         await tx.chapter.create({
           data: {
             novelId: novel.id,
@@ -42,7 +42,7 @@ export class NovelService {
     })
   }
 
-  // 使用事务更新小说及其章节
+  // 娴ｈ法鏁ゆ禍瀣閺囧瓨鏌婄亸蹇氼嚛閸欏﹤鍙剧粩鐘哄Ν
   async updateNovelAndChaptersWithTransaction(
     novelId: string,
     data: {
@@ -58,7 +58,7 @@ export class NovelService {
     }
   ) {
     return prisma.$transaction(async (tx) => {
-      // 更新小说基本信息
+      // 閺囧瓨鏌婄亸蹇氼嚛閸╃儤婀版穱鈩冧紖
       const novel = await tx.novel.update({
         where: { id: novelId },
         data: {
@@ -68,11 +68,11 @@ export class NovelService {
         }
       })
 
-      // 如果提供了章节更新，批量更新章节
+      // 婵″倹鐏夐幓鎰返娴滃棛鐝烽懞鍌涙纯閺傚府绱濋幍褰掑櫤閺囧瓨鏌婄粩鐘哄Ν
       if (data.chapters) {
         for (const chapter of data.chapters) {
           if (chapter.id) {
-            // 更新现有章节
+            // 閺囧瓨鏌婇悳鐗堟箒缁旂姾濡�
             await tx.chapter.update({
               where: { id: chapter.id },
               data: {
@@ -82,7 +82,7 @@ export class NovelService {
               }
             })
           } else {
-            // 创建新章�?            await tx.chapter.create({
+            // 閸掓稑缂撻弬鎵彿閼�?            await tx.chapter.create({
               data: {
                 novelId,
                 number: chapter.number,
@@ -98,7 +98,7 @@ export class NovelService {
     })
   }
 
-  // 使用事务创建记忆锚点及其关系
+  // 娴ｈ法鏁ゆ禍瀣閸掓稑缂撶拋鏉跨箓闁挎氨鍋ｉ崣濠傚従閸忓磭閮�
   async createMemoryAnchorWithRelations(data: {
     novelId: string
     chapterId: string
@@ -113,7 +113,7 @@ export class NovelService {
     }>
   }) {
     return prisma.$transaction(async (tx) => {
-      // 创建记忆锚点
+      // 閸掓稑缂撶拋鏉跨箓闁挎氨鍋�
       const memoryAnchor = await tx.memoryAnchor.create({
         data: {
           novelId: data.novelId,
@@ -125,7 +125,7 @@ export class NovelService {
         }
       })
 
-      // 如果有向量嵌入，存入Milvus
+      // 婵″倹鐏夐張澶婃倻闁插繐绁甸崗銉礉鐎涙ê鍙哅ilvus
       if (data.embedding) {
         await milvus.insert({
           collection_name: 'memory_anchors',
@@ -138,7 +138,7 @@ export class NovelService {
         })
       }
 
-      // 创建关系
+      // 閸掓稑缂撻崗宕囬兇
       if (data.relations) {
         for (const relation of data.relations) {
           await tx.memoryRelation.create({
@@ -156,15 +156,15 @@ export class NovelService {
     })
   }
 
-  // 使用事务删除小说及其所有相关数�?  async deleteNovelWithTransaction(novelId: string) {
+  // 娴ｈ法鏁ゆ禍瀣閸掔娀娅庣亸蹇氼嚛閸欏﹤鍙鹃幍鈧張澶屾祲閸忚櫕鏆熼幑?  async deleteNovelWithTransaction(novelId: string) {
     return prisma.$transaction(async (tx) => {
-      // 获取所有相关的记忆锚点ID
+      // 閼惧嘲褰囬幍鈧張澶屾祲閸忓磭娈戠拋鏉跨箓闁挎氨鍋D
       const memoryAnchors = await tx.memoryAnchor.findMany({
         where: { novelId },
         select: { id: true }
       })
 
-      // 删除记忆关系
+      // 閸掔娀娅庣拋鏉跨箓閸忓磭閮�
       await tx.memoryRelation.deleteMany({
         where: {
           OR: [
@@ -174,27 +174,27 @@ export class NovelService {
         }
       })
 
-      // 删除记忆锚点
+      // 閸掔娀娅庣拋鏉跨箓闁挎氨鍋�
       await tx.memoryAnchor.deleteMany({
         where: { novelId }
       })
 
-      // 删除伏笔
+      // 閸掔娀娅庢导蹇曠應
       await tx.foreshadowing.deleteMany({
         where: { novelId }
       })
 
-      // 删除章节
+      // 閸掔娀娅庣粩鐘哄Ν
       await tx.chapter.deleteMany({
         where: { novelId }
       })
 
-      // 删除小说
+      // 閸掔娀娅庣亸蹇氼嚛
       await tx.novel.delete({
         where: { id: novelId }
       })
 
-      // 从Milvus中删除相关向�?      // 注意：这里不能包含在事务中，因为Milvus不支持事�?      // 如果Milvus操作失败，可以通过后台任务清理
+      // 娴犲懂ilvus娑擃厼鍨归梽銈囨祲閸忓啿鎮滈柌?      // 濞夈劍鍓伴敍姘崇箹闁插奔绗夐懗钘夊瘶閸氼偄婀禍瀣娑擃叏绱濋崶鐘辫礋Milvus娑撳秵鏁幐浣风皑閸�?      // 婵″倹鐏塎ilvus閹垮秳缍旀径杈Е閿涘苯褰叉禒銉┾偓姘崇箖閸氬骸褰存禒璇插濞撳懐鎮�
       try {
         for (const anchor of memoryAnchors) {
           await milvus.delete({
@@ -203,13 +203,13 @@ export class NovelService {
           })
         }
       } catch (error) {
-        console.error('从Milvus删除向量失败:', error)
-        // 记录失败的删除操作，以便后续清理
+        console.error('娴犲懂ilvus閸掔娀娅庨崥鎴﹀櫤婢惰精瑙�:', error)
+        // 鐠佹澘缍嶆径杈Е閻ㄥ嫬鍨归梽銈嗘惙娴ｆ粣绱濇禒銉ょ┒閸氬海鐢诲〒鍛倞
       }
     })
   }
 
-  // 小说相关操作
+  // 鐏忓繗顕╅惄绋垮彠閹垮秳缍�
   async createNovel(data: { title: string; author: string; description?: string; settings?: any }) {
     return prisma.novel.create({ data })
   }
@@ -228,7 +228,7 @@ export class NovelService {
     })
   }
 
-  // 章节相关操作
+  // 缁旂姾濡惄绋垮彠閹垮秳缍�
   async createChapter(data: { novelId: string; number: number; title: string; content: string }) {
     return prisma.chapter.create({ data })
   }
@@ -247,7 +247,7 @@ export class NovelService {
     })
   }
 
-  // 记忆锚点操作
+  // 鐠佹澘绻傞柨姘卞仯閹垮秳缍�
   async createMemoryAnchor(data: {
     novelId: string
     chapterId: string
@@ -258,7 +258,7 @@ export class NovelService {
   }) {
     const memoryAnchor = await prisma.memoryAnchor.create({ data })
 
-    // 如果有向量嵌入，存入Milvus
+    // 婵″倹鐏夐張澶婃倻闁插繐绁甸崗銉礉鐎涙ê鍙哅ilvus
     if (data.embedding) {
       await milvus.insert({
         collection_name: 'memory_anchors',
@@ -282,18 +282,18 @@ export class NovelService {
       limit
     })
 
-    // 获取完整的记忆锚点数�?    const ids = results.results.map((r) => r.id)
+    // 閼惧嘲褰囩€瑰本鏆ｉ惃鍕唶韫囧棝鏁嬮悙瑙勬殶閹�?    const ids = results.results.map((r) => r.id)
     return prisma.memoryAnchor.findMany({
       where: { id: { in: ids } }
     })
   }
 
-  // 记忆关系操作
+  // 鐠佹澘绻傞崗宕囬兇閹垮秳缍�
   async createMemoryRelation(data: { sourceId: string; targetId: string; type: string; weight?: number }) {
     return prisma.memoryRelation.create({ data })
   }
 
-  // 伏笔管理操作
+  // 娴煎繒鐟粻锛勬倞閹垮秳缍�
   async createForeshadowing(data: { novelId: string; content: string; plantedAt: number; expectedAt: number }) {
     return prisma.foreshadowing.create({ data })
   }
@@ -315,7 +315,7 @@ export class NovelService {
     })
   }
 
-  // 获取记忆锚点
+  // 閼惧嘲褰囩拋鏉跨箓闁挎氨鍋�
   async getMemoryAnchors(novelId: string, startChapter: number, endChapter: number) {
     return prisma.memoryAnchor.findMany({
       where: {
@@ -333,7 +333,7 @@ export class NovelService {
     })
   }
 
-  // 根据ID获取记忆锚点
+  // 閺嶈宓両D閼惧嘲褰囩拋鏉跨箓闁挎氨鍋�
   async getMemoryAnchorsByIds(ids: string[]) {
     return prisma.memoryAnchor.findMany({
       where: {
@@ -347,7 +347,7 @@ export class NovelService {
     })
   }
 
-  // 更新记忆锚点
+  // 閺囧瓨鏌婄拋鏉跨箓闁挎氨鍋�
   async updateMemoryAnchor(id: string, data: { weight?: number; content?: string }) {
     return prisma.memoryAnchor.update({
       where: { id },
@@ -355,7 +355,7 @@ export class NovelService {
     })
   }
 
-  // 使用分片存储章节
+  // 娴ｈ法鏁ら崚鍡欏鐎涙ê鍋嶇粩鐘哄Ν
   async createChapterWithSharding(data: {
     novelId: string
     number: number
@@ -374,16 +374,16 @@ export class NovelService {
     })
   }
 
-  // 从分片读取章�?  async getChapterWithSharding(novelId: string, chapterNumber: number) {
+  // 娴犲骸鍨庨悧鍥嚢閸欐牜鐝烽懞?  async getChapterWithSharding(novelId: string, chapterNumber: number) {
     return shardManager.readChapterFromShard(novelId, chapterNumber)
   }
 
-  // 获取分片统计信息
+  // 閼惧嘲褰囬崚鍡欏缂佺喕顓告穱鈩冧紖
   async getShardingStats() {
     return shardManager.getShardStats()
   }
 
-  // 清理过期分片
+  // 濞撳懐鎮婃潻鍥ㄦ埂閸掑棛澧�
   async cleanupStaleShards(maxAgeHours: number = 24) {
     return shardManager.cleanupStaleShards(maxAgeHours * 60 * 60 * 1000)
   }
