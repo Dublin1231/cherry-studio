@@ -23,6 +23,11 @@ model Novel {
   
   // 设置
   settings    Json?    // 存储风格、世界观等设置
+
+  // 索引
+  @@index([title])
+  @@index([author])
+  @@index([createdAt])
 }
 
 // 章节内容
@@ -40,7 +45,11 @@ model Chapter {
   novel       Novel    @relation(fields: [novelId], references: [id])
   memories    MemoryAnchor[]
   
+  // 索引和约束
   @@unique([novelId, number])
+  @@index([novelId])
+  @@index([status])
+  @@index([createdAt])
 }
 
 // 记忆锚点
@@ -61,6 +70,13 @@ model MemoryAnchor {
   // 关系
   relations   MemoryRelation[] @relation("SourceMemory")
   relatedTo   MemoryRelation[] @relation("TargetMemory")
+
+  // 索引
+  @@index([novelId])
+  @@index([chapterId])
+  @@index([type])
+  @@index([weight])
+  @@index([novelId, type]) // 复合索引用于按类型查询小说的记忆
 }
 
 // 记忆关系
@@ -74,6 +90,13 @@ model MemoryRelation {
   // 关联
   source      MemoryAnchor @relation("SourceMemory", fields: [sourceId], references: [id])
   target      MemoryAnchor @relation("TargetMemory", fields: [targetId], references: [id])
+
+  // 索引
+  @@index([sourceId])
+  @@index([targetId])
+  @@index([type])
+  @@index([weight])
+  @@index([sourceId, targetId]) // 复合索引用于关系查询
 }
 
 // 伏笔管理
@@ -89,4 +112,11 @@ model Foreshadowing {
   
   // 关联
   novel       Novel    @relation(fields: [novelId], references: [id])
+
+  // 索引
+  @@index([novelId])
+  @@index([status])
+  @@index([plantedAt])
+  @@index([expectedAt])
+  @@index([novelId, status]) // 复合索引用于查询小说的未回收伏笔
 } 
